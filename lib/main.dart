@@ -61,7 +61,7 @@ class _MyAppState extends State<MyApp> {
                   SmsQueryKind.sent,
                 ],
                 // address: '+254712345789',
-                count: 20 ,
+                count: 20,
               );
               debugPrint('sms inbox messages: ${messages.length}');
 
@@ -86,6 +86,36 @@ class _MessagesListView extends StatelessWidget {
   final List<SmsMessage> messages;
   String keyword = "Rs";
   String keyword1 = "INR";
+  List<String> sentTxn = ['sent', 'debit', 'debited'];
+  List<String> receivedTxn = ['received', 'credit', 'credited'];
+
+  String? findKeyword(List<SmsMessage> messages, List<String> sentKeywords,
+      List<String> receivedKeywords) {
+    // Convert the SMS body to lowercase for case-insensitive matching
+    List<String> smsBodies =
+        messages.map((message) => message.body?.toLowerCase() ?? "").toList();
+
+    // Check if any part of the SMS body contains sent keywords
+    for (String body in smsBodies) {
+      for (String keyword in sentKeywords) {
+        if (body.contains(keyword.toLowerCase())) {
+          return keyword;
+        }
+      }
+    }
+
+    // Check if any part of the SMS body contains received keywords
+    for (String body in smsBodies) {
+      for (String keyword in receivedKeywords) {
+        if (body.contains(keyword.toLowerCase())) {
+          return keyword;
+        }
+      }
+    }
+
+    // If no match is found, return null
+    return null;
+  }
 
   List<SmsMessage> filterMessages(
       List<SmsMessage> messages, String keyword, String keyword1) {
@@ -101,6 +131,8 @@ class _MessagesListView extends StatelessWidget {
   Widget build(BuildContext context) {
     List<SmsMessage> filteredMessages =
         filterMessages(messages, keyword, keyword1);
+    String? key = findKeyword(messages, sentTxn, receivedTxn);
+
     return ListView.builder(
       shrinkWrap: true,
       // itemCount: messages.length,
@@ -109,6 +141,11 @@ class _MessagesListView extends StatelessWidget {
         // var message = messages[i];
         var message = filteredMessages[i];
         var paragraph = message.body;
+        if (key != null) {
+          print("Keyword found: $key");
+        } else {
+          print("No matching keyword found in the SMS body");
+        }
 
         // Trim paragraph based on keyword reference
 
@@ -152,7 +189,26 @@ class _MessagesListView extends StatelessWidget {
                 children: [
                   Text('${message.sender}'),
                   Column(
-                    children: [Text(trimmedParagraph), Text('${message.date}')],
+                    children: [
+                      Text(
+                        trimmedParagraph,
+                        style: TextStyle(
+                          // color: sentTxn.any((keyword) =>
+                          //         trimmedParagraph.contains(keyword))
+                          //     ? Colors.red
+                          //     : receivedTxn.any((keyword) =>
+                          //             trimmedParagraph.contains(keyword))
+                          //         ? Colors.green
+                          //         : Colors.grey,
+                          color: sentTxn.any((keyword) => trimmedParagraph
+                                  .toLowerCase()
+                                  .contains(keyword.toLowerCase()))
+                              ? Colors.red
+                              : Colors.green,
+                        ),
+                      ),
+                      Text('${message.date}'),
+                    ],
                   )
                 ],
               ),
