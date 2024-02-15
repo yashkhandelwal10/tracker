@@ -1,8 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:tracker/firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -74,24 +78,71 @@ class _MyAppState extends State<MyApp> {
 }
 
 class _MessagesListView extends StatelessWidget {
-  const _MessagesListView({
+  _MessagesListView({
     Key? key,
     required this.messages,
   }) : super(key: key);
 
   final List<SmsMessage> messages;
+  String keyword = "Rs";
+  String keyword1 = "INR";
+
+  List<SmsMessage> filterMessages(
+      List<SmsMessage> messages, String keyword, String keyword1) {
+    return messages
+        .where((message) =>
+            message.body != null &&
+                message.body!.toLowerCase().contains(keyword.toLowerCase()) ||
+            message.body!.toLowerCase().contains(keyword1.toLowerCase()))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
+    List<SmsMessage> filteredMessages =
+        filterMessages(messages, keyword, keyword1);
     return ListView.builder(
       shrinkWrap: true,
-      itemCount: messages.length,
+      // itemCount: messages.length,
+      itemCount: filteredMessages.length,
       itemBuilder: (BuildContext context, int i) {
-        var message = messages[i];
+        // var message = messages[i];
+        var message = filteredMessages[i];
+        var paragraph = message.body;
+
+        // Trim paragraph based on keyword reference
+
+        String trimParagraph(
+            String paragraph, String keyword, String keyword1) {
+          int keywordIndex =
+              paragraph.toLowerCase().indexOf(keyword.toLowerCase());
+          int keywordIndex1 =
+              paragraph.toLowerCase().indexOf(keyword1.toLowerCase());
+          if (keywordIndex != -1) {
+            int startIndex = paragraph.indexOf(" ", keywordIndex) + 1;
+            int endIndex = paragraph.indexOf(" ", startIndex);
+            if (endIndex == -1) {
+              endIndex = paragraph.length;
+            }
+            return paragraph.substring(startIndex, endIndex).trim();
+          } else if (keywordIndex1 != -1) {
+            int startIndex = paragraph.indexOf(" ", keywordIndex1) + 1;
+            int endIndex = paragraph.indexOf(" ", startIndex);
+            if (endIndex == -1) {
+              endIndex = paragraph.length;
+            }
+            return paragraph.substring(startIndex, endIndex).trim();
+          }
+          return paragraph;
+        }
+
+        String trimmedParagraph = trimParagraph(paragraph!, keyword, keyword1);
 
         return ListTile(
           title: Text('${message.sender} [${message.date}]'),
-          subtitle: Text('${message.body}'),
+          // subtitle: Text('${message.body}'),
+          subtitle:
+              Align(alignment: Alignment.center, child: Text(trimmedParagraph)),
         );
       },
     );
