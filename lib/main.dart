@@ -61,7 +61,7 @@ class _MyAppState extends State<MyApp> {
                   SmsQueryKind.sent,
                 ],
                 // address: '+254712345789',
-                count: 20,
+                count: 50,
               );
               debugPrint('sms inbox messages: ${messages.length}');
 
@@ -99,7 +99,7 @@ class _MessagesListView extends StatelessWidget {
   List<String> shopping = ['amazon', 'flipkart', 'myntra', 'meesho', 'ajio'];
   List<String> ride = ['uber', 'ola', 'rapido'];
   List<String> food = ['swiggy', 'zomato', 'eatclub'];
-  List<String> investment = ['upstox', 'grow', 'zerodha', 'uti'];
+  List<String> investment = ['upstox', 'groww', 'zerodha', 'uti', 'bse'];
   List<String> ott = [
     'netflix',
     'prime',
@@ -109,59 +109,59 @@ class _MessagesListView extends StatelessWidget {
     'sonylib'
   ];
 
-  String? findSender(
-      List<SmsMessage> messages,
-      List<String> shopKeywords,
-      List<String> rideKeywords,
-      List<String> foodKeywords,
-      List<String> investmentKeywords,
-      List<String> ottKeywords) {
-    // Convert the SMS body to lowercase for case-insensitive matching
-    List<String> smsSeader =
-        messages.map((message) => message.sender?.toLowerCase() ?? "").toList();
+  // String? findSender(
+  //     List<SmsMessage> messages,
+  //     List<String> shopKeywords,
+  //     List<String> rideKeywords,
+  //     List<String> foodKeywords,
+  //     List<String> investmentKeywords,
+  //     List<String> ottKeywords) {
+  //   // Convert the SMS body to lowercase for case-insensitive matching
+  //   List<String> smsSeader =
+  //       messages.map((message) => message.sender?.toLowerCase() ?? "").toList();
 
-    // Check if any part of the SMS body contains sent keywords
-    for (String head in smsSeader) {
-      for (String keyword in shopKeywords) {
-        if (head.contains(keyword.toLowerCase())) {
-          return keyword;
-        }
-      }
-    }
+  //   // Check if any part of the SMS body contains sent keywords
+  //   for (String head in smsSeader) {
+  //     for (String keyword in shopKeywords) {
+  //       if (head.contains(keyword.toLowerCase())) {
+  //         return keyword;
+  //       }
+  //     }
+  //   }
 
-    // Check if any part of the SMS body contains received keywords
-    for (String head in smsSeader) {
-      for (String keyword in rideKeywords) {
-        if (head.contains(keyword.toLowerCase())) {
-          return keyword;
-        }
-      }
-    }
-    for (String head in smsSeader) {
-      for (String keyword in foodKeywords) {
-        if (head.contains(keyword.toLowerCase())) {
-          return keyword;
-        }
-      }
-    }
-    for (String head in smsSeader) {
-      for (String keyword in investmentKeywords) {
-        if (head.contains(keyword.toLowerCase())) {
-          return keyword;
-        }
-      }
-    }
-    for (String head in smsSeader) {
-      for (String keyword in ottKeywords) {
-        if (head.contains(keyword.toLowerCase())) {
-          return keyword;
-        }
-      }
-    }
+  //   // Check if any part of the SMS body contains received keywords
+  //   for (String head in smsSeader) {
+  //     for (String keyword in rideKeywords) {
+  //       if (head.contains(keyword.toLowerCase())) {
+  //         return keyword;
+  //       }
+  //     }
+  //   }
+  //   for (String head in smsSeader) {
+  //     for (String keyword in foodKeywords) {
+  //       if (head.contains(keyword.toLowerCase())) {
+  //         return keyword;
+  //       }
+  //     }
+  //   }
+  //   for (String head in smsSeader) {
+  //     for (String keyword in investmentKeywords) {
+  //       if (head.contains(keyword.toLowerCase())) {
+  //         return keyword;
+  //       }
+  //     }
+  //   }
+  //   for (String head in smsSeader) {
+  //     for (String keyword in ottKeywords) {
+  //       if (head.contains(keyword.toLowerCase())) {
+  //         return keyword;
+  //       }
+  //     }
+  //   }
 
-    // If no match is found, return null
-    return null;
-  }
+  //   // If no match is found, return null
+  //   return null;
+  // }
 
   String? findKeyword(List<SmsMessage> messages, List<String> sentKeywords,
       List<String> receivedKeywords) {
@@ -222,13 +222,32 @@ class _MessagesListView extends StatelessWidget {
     return false;
   }
 
+  String? getSenderCategory(String senderName) {
+    if (shopping.any((keyword) => senderName.toLowerCase().contains(keyword))) {
+      return "Shopping";
+    } else if (ride
+        .any((keyword) => senderName.toLowerCase().contains(keyword))) {
+      return "Ride";
+    } else if (food
+        .any((keyword) => senderName.toLowerCase().contains(keyword))) {
+      return "Food";
+    } else if (investment
+        .any((keyword) => senderName.toLowerCase().contains(keyword))) {
+      return "Investment";
+    } else if (ott
+        .any((keyword) => senderName.toLowerCase().contains(keyword))) {
+      return "OTT";
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     List<SmsMessage> filteredMessages =
         filterMessages(messages, keyword, keyword1);
     String? key = findKeyword(messages, sentTxn, receivedTxn);
-    String? keySender =
-        findSender(messages, shopping, ride, food, investment, ott);
+    // String? senderCategory1 =
+    //     findSender(messages, shopping, ride, food, investment, ott);
 
     return ListView.builder(
       shrinkWrap: true,
@@ -238,7 +257,11 @@ class _MessagesListView extends StatelessWidget {
         // var message = messages[i];
         var message = filteredMessages[i];
         var paragraph = message.body;
-        var senderName = message.sender;
+        // var senderName = message.sender;
+        // filteredMessages.forEach((message) {
+        //   senderName = senderCategory ?? message.sender;
+        // });
+
         if (key != null) {
           print("Keyword found: $key");
         } else {
@@ -272,6 +295,7 @@ class _MessagesListView extends StatelessWidget {
         }
 
         String trimmedParagraph = trimParagraph(paragraph!, keyword, keyword1);
+        String? senderCategory = getSenderCategory(message.sender ?? "");
 
         // return ListTile(
         //   title: Text('${message.sender} [${message.date}]'),
@@ -285,7 +309,9 @@ class _MessagesListView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${message.sender}'),
+                  Text('${senderCategory ?? message.sender}'),
+                  // Text('${message.sender}'),
+                  // Text(senderName!),
                   // Text(senderName == investment ? 'investment' : 'XYZ'),
 
                   Column(
