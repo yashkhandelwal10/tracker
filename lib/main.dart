@@ -61,7 +61,7 @@ class _MyAppState extends State<MyApp> {
                   SmsQueryKind.sent,
                 ],
                 // address: '+254712345789',
-                count: 10,
+                count: 20 ,
               );
               debugPrint('sms inbox messages: ${messages.length}');
 
@@ -138,11 +138,29 @@ class _MessagesListView extends StatelessWidget {
 
         String trimmedParagraph = trimParagraph(paragraph!, keyword, keyword1);
 
-        return ListTile(
-          title: Text('${message.sender} [${message.date}]'),
-          // subtitle: Text('${message.body}'),
-          subtitle:
-              Align(alignment: Alignment.center, child: Text(trimmedParagraph)),
+        // return ListTile(
+        //   title: Text('${message.sender} [${message.date}]'),
+        //   // subtitle: Text('${message.body}'),
+        //   subtitle:
+        //       Align(alignment: Alignment.center, child: Text(trimmedParagraph)),
+        // );
+        return Container(
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${message.sender}'),
+                  Column(
+                    children: [Text(trimmedParagraph), Text('${message.date}')],
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+            ],
+          ),
         );
       },
     );
