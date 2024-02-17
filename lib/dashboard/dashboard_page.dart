@@ -1,3 +1,5 @@
+// Dashboard page :
+
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -167,7 +169,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 SmsQueryKind.sent,
               ],
               // address: '+254712345789',
-              count: 5,
+              count: 10,
             );
             debugPrint('sms inbox messages: ${messages.length}');
 
