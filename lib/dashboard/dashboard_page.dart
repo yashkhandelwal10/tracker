@@ -169,7 +169,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 SmsQueryKind.sent,
               ],
               // address: '+254712345789',
-              count: 10,
+              count: 20,
             );
             debugPrint('sms inbox messages: ${messages.length}');
 

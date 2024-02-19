@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
+import 'package:tracker/dashboard/dashboard.dart';
 import 'package:tracker/dashboard/dashboard_page.dart';
 import 'package:tracker/dashboard/message_view_list.dart';
+import 'package:tracker/phoneAuthentication/phone_number_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -91,26 +93,26 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _createUserDocument(User user) async {
-    // Check if the user document already exists in Firestore
-    final DocumentSnapshot userSnapshot =
-        await _firestore.collection('users').doc(user.uid).get();
+  // Future<void> _createUserDocument(User user) async {
+  //   // Check if the user document already exists in Firestore
+  //   final DocumentSnapshot userSnapshot =
+  //       await _firestore.collection('users').doc(user.uid).get();
 
-    if (!userSnapshot.exists) {
-      // If the user document doesn't exist, create it
-      await _firestore.collection('users').doc(user.uid).set({
-        'name': user.displayName,
-        'email': user.email,
-      });
+  //   if (!userSnapshot.exists) {
+  //     // If the user document doesn't exist, create it
+  //     await _firestore.collection('users').doc(user.uid).set({
+  //       'name': user.displayName,
+  //       'email': user.email,
+  //     });
 
-      // Create an SMS collection for the user
-      await _firestore.collection('users').doc(user.uid).collection('sms').add({
-        'sender': 'Sample Sender',
-        'date': '2024-02-16',
-        'message': 'Sample SMS message content',
-      });
-    }
-  }
+  //     // Create an SMS collection for the user
+  //     await _firestore.collection('users').doc(user.uid).collection('sms').add({
+  //       'sender': 'Sample Sender',
+  //       'date': '2024-02-16',
+  //       'message': 'Sample SMS message content',
+  //     });
+  //   }
+  // }
 
   Widget _googleSignInButton() {
     return Center(
@@ -184,7 +186,23 @@ class _HomePageState extends State<HomePage> {
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => DashboardPage(messages: _messages)));
             },
-          )
+          ),
+          MaterialButton(
+            color: Colors.blue,
+            child: const Text("Firestore Data"),
+            onPressed: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (context) => Dashboard()));
+            },
+          ),
+          MaterialButton(
+            color: Colors.blue,
+            child: const Text("Phone App"),
+            onPressed: () {
+              Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => PhoneAuthScreen()));
+            },
+          ),
         ],
       ),
     );
@@ -238,7 +256,7 @@ class _HomePageState extends State<HomePage> {
         final User? user = userCredential.user;
         if (user != null) {
           // Create user document in Firestore
-          await _createUserDocument(user);
+          // await _createUserDocument(user);
           await _associateSMSWithUser(user);
           // await addSMSToUserCollection  (user);
         }
@@ -253,21 +271,26 @@ class _HomePageState extends State<HomePage> {
   Future<void> _associateSMSWithUser(User user) async {
     try {
       final FirebaseFirestore firestore = FirebaseFirestore.instance;
-      final QuerySnapshot smsQuerySnapshot =
-          await firestore.collection('sms').get();
+      final CollectionReference smsCollection = firestore.collection('sms');
 
-      final List<DocumentSnapshot> smsDocs = smsQuerySnapshot.docs;
-      for (final DocumentSnapshot smsDoc in smsDocs) {
+      final QuerySnapshot smsQuerySnapshot = await smsCollection.get();
+
+      for (final QueryDocumentSnapshot smsDoc in smsQuerySnapshot.docs) {
         final Map<String, dynamic>? smsData =
             smsDoc.data() as Map<String, dynamic>?;
         if (smsData != null) {
-          // Associate SMS with user using a unique identifier
-          await firestore
+          // Check if the SMS already associated with the user
+          final DocumentReference userSmsRef = firestore
               .collection('users')
               .doc(user.uid)
               .collection('user_sms')
-              .doc(smsDoc.id)
-              .set(smsData);
+              .doc(smsDoc.id);
+
+          final DocumentSnapshot userSmsSnapshot = await userSmsRef.get();
+          if (!userSmsSnapshot.exists) {
+            // If not associated, then associate it
+            await userSmsRef.set(smsData);
+          }
         }
       }
       print('SMS associated with user: ${user.displayName}');
@@ -275,6 +298,32 @@ class _HomePageState extends State<HomePage> {
       print('Error associating SMS with user: $error');
     }
   }
+
+  // Future<void> _associateSMSWithUser(User user) async {
+  //   try {
+  //     final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  //     final QuerySnapshot smsQuerySnapshot =
+  //         await firestore.collection('sms').get();
+
+  //     final List<DocumentSnapshot> smsDocs = smsQuerySnapshot.docs;
+  //     for (final DocumentSnapshot smsDoc in smsDocs) {
+  //       final Map<String, dynamic>? smsData =
+  //           smsDoc.data() as Map<String, dynamic>?;
+  //       if (smsData != null) {
+  //         // Associate SMS with user using a unique identifier
+  //         await firestore
+  //             .collection('users')
+  //             .doc(user.uid)
+  //             .collection('user_sms')
+  //             .doc(smsDoc.id)
+  //             .set(smsData);
+  //       }
+  //     }
+  //     print('SMS associated with user: ${user.displayName}');
+  //   } catch (error) {
+  //     print('Error associating SMS with user: $error');
+  //   }
+  // }
 
   // Future<void> addSMSToUserCollection(User user, String smsBody) async {
   //   try {
