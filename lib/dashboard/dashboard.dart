@@ -69,47 +69,97 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+  // Future<void> fetchData() async {
+  //   try {
+  //     // Get the current user
+  //     User? user = _auth.currentUser;
+
+  //     if (user != null) {
+  //       // Reference to the Firestore collection "users"
+  //       CollectionReference usersCollection =
+  //           FirebaseFirestore.instance.collection('users');
+
+  //       // Fetch documents from the "sms" collection under the current user
+  //       QuerySnapshot smsSnapshot =
+  //           await usersCollection.doc(user.uid).collection('sms').get();
+
+  //       // Fetch data from the "user_sms" collection under the current user
+  //       QuerySnapshot userSmsSnapshot =
+  //           await usersCollection.doc(user.uid).collection('user_sms').get();
+
+  //       // Iterate through each document in the "sms" collection
+  //       smsSnapshot.docs.forEach((smsDoc) {
+  //         // Fetch data only if the SMS message contains the keywords 'Rs.' or 'INR'
+  //         if ((smsDoc['message'] as String).toLowerCase().contains('rs.') ||
+  //             (smsDoc['message'] as String).toLowerCase().contains('inr')) {
+  //           // Combine SMS and user SMS data
+  //           List<Object?> userSmsData =
+  //               userSmsSnapshot.docs.map((doc) => doc.data()).toList();
+
+  //           userData.add({
+  //             'smsDate': (smsDoc['date'] as Timestamp).toDate(),
+  //             'smsMessage': smsDoc['message'],
+  //             'smsSender': smsDoc['sender'],
+  //             'userSmsData': userSmsData,
+  //           });
+  //         }
+  //       });
+
+  //       // Update UI with new data
+  //       setState(() {});
+  //     }
+  //   } catch (error) {
+  //     print('Error fetching data: $error');
+  //   }
+  // }
   Future<void> fetchData() async {
     try {
-      // Get the current user
+      // Check if the user is authenticated
       User? user = _auth.currentUser;
-
-      if (user != null) {
-        // Reference to the Firestore collection "users"
-        CollectionReference usersCollection =
-            FirebaseFirestore.instance.collection('users');
-
-        // Fetch documents from the "sms" collection under the current user
-        QuerySnapshot smsSnapshot =
-            await usersCollection.doc(user.uid).collection('sms').get();
-
-        // Fetch data from the "user_sms" collection under the current user
-        QuerySnapshot userSmsSnapshot =
-            await usersCollection.doc(user.uid).collection('user_sms').get();
-
-        // Iterate through each document in the "sms" collection
-        smsSnapshot.docs.forEach((smsDoc) {
-          // Fetch data only if the SMS message contains the keywords 'Rs.' or 'INR'
-          if ((smsDoc['message'] as String).toLowerCase().contains('rs.') ||
-              (smsDoc['message'] as String).toLowerCase().contains('inr')) {
-            // Combine SMS and user SMS data
-            List<Object?> userSmsData =
-                userSmsSnapshot.docs.map((doc) => doc.data()).toList();
-
-            userData.add({
-              'smsDate': (smsDoc['date'] as Timestamp).toDate(),
-              'smsMessage': smsDoc['message'],
-              'smsSender': smsDoc['sender'],
-              'userSmsData': userSmsData,
-            });
-          }
-        });
-
-        // Update UI with new data
-        setState(() {});
+      if (user == null) {
+        print('User not authenticated.');
+        return;
       }
+
+      // Clear existing data before fetching new data
+      userData.clear();
+
+      // Reference to the Firestore collection "users"
+      CollectionReference usersCollection =
+          FirebaseFirestore.instance.collection('users');
+
+      // Fetch documents from the "sms" collection under the current user
+      QuerySnapshot smsSnapshot =
+          await usersCollection.doc(user.uid).collection('sms').get();
+
+      // Fetch data from the "user_sms" collection under the current user
+      QuerySnapshot userSmsSnapshot =
+          await usersCollection.doc(user.uid).collection('user_sms').get();
+
+      // Iterate through each document in the "sms" collection
+      smsSnapshot.docs.forEach((smsDoc) {
+        // Fetch data only if the SMS message contains the keywords 'Rs.' or 'INR'
+        if ((smsDoc['message'] as String).toLowerCase().contains('rs.') ||
+            (smsDoc['message'] as String).toLowerCase().contains('inr')) {
+          // Combine SMS and user SMS data
+          List<Object?> userSmsData =
+              userSmsSnapshot.docs.map((doc) => doc.data()).toList();
+
+          userData.add({
+            'smsDate': (smsDoc['date'] as Timestamp).toDate(),
+            'smsMessage': smsDoc['message'],
+            'smsSender': smsDoc['sender'],
+            'userSmsData': userSmsData,
+          });
+        }
+      });
+
+      // Update UI with new data
+      setState(() {});
     } catch (error) {
       print('Error fetching data: $error');
+      // Optionally, you can show a snackbar or dialog to inform the user about the error
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to fetch data')));
     }
   }
 }
